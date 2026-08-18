@@ -13,7 +13,7 @@ import aiInvoiceRouter from './routes/aiInvoiceRouter.js';
 const app = express();
 
 // Render provides PORT through environment variables.
-// 4000 is used when running locally without PORT configured.
+// 4000 is used when running locally.
 const PORT = process.env.PORT || 4000;
 
 // ==================== DATABASE ====================
@@ -30,11 +30,8 @@ if (!fs.existsSync(uploadDir)) {
 
 // ==================== CORS ====================
 
-// Local frontend
 const allowedOrigins = [
   'http://localhost:5173',
-
-  // Production frontend URL from environment variable
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -42,7 +39,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests without an Origin header
-      // (for example, Postman or server-to-server requests)
+      // Example: Postman or server-to-server requests
       if (!origin) {
         return callback(null, true);
       }
@@ -51,12 +48,17 @@ app.use(
         return callback(null, true);
       }
 
+      console.log(`CORS blocked origin: ${origin}`);
+
       return callback(
         new Error(`CORS policy: Origin ${origin} is not allowed`)
       );
     },
+
     credentials: true,
+
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
