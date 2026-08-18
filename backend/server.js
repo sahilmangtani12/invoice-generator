@@ -11,7 +11,10 @@ import businessProfileRouter from './routes/businessProfileRouter.js';
 import aiInvoiceRouter from './routes/aiInvoiceRouter.js';
 
 const app = express();
-const port = process.env.PORT || 4000;
+
+// Render provides PORT through environment variables.
+// 4000 is used when running locally without PORT configured.
+const PORT = process.env.PORT || 4000;
 
 // ==================== DATABASE ====================
 
@@ -25,16 +28,40 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// ==================== MIDDLEWARES ====================
+// ==================== CORS ====================
+
+// Local frontend
+const allowedOrigins = [
+  'http://localhost:5173',
+
+  // Production frontend URL from environment variable
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests without an Origin header
+      // (for example, Postman or server-to-server requests)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error(`CORS policy: Origin ${origin} is not allowed`)
+      );
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
+
+// ==================== MIDDLEWARES ====================
 
 app.use(clerkMiddleware());
 
@@ -54,7 +81,10 @@ app.use('/api/ai', aiInvoiceRouter);
 // ==================== TEST ROUTE ====================
 
 app.get('/', (req, res) => {
-  res.send('API WORKING');
+  res.json({
+    success: true,
+    message: 'Invoice Generator API is running',
+  });
 });
 
 // ==================== GLOBAL ERROR HANDLER ====================
@@ -70,6 +100,6 @@ app.use((err, req, res, next) => {
 
 // ==================== START SERVER ====================
 
-app.listen(port, () => {
-  console.log(`🚀 Server Started on http://localhost:${port}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server started on port ${PORT}`);
 });
