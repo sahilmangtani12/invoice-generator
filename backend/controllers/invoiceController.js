@@ -3,8 +3,7 @@ import Invoice from "../models/invoiceModel.js";
 import {getAuth} from "@clerk/express";
 import path from 'path';
 
-const API_BASE =
-  process.env.API_BASE_URL || 'http://localhost:4000';
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 function computeTotals(items =[] ,taxPercent = 0){
     const safe = Array.isArray(items) ? items.filter(Boolean):[];
